@@ -21,7 +21,7 @@ def flatten_json(nested_json, parent_key="", sep=":"):
     for key, value in nested_json.items():
         new_key = parent_key + sep + key if parent_key else key
         if isinstance(value, dict):
-            flattened_dict.update(flatten_json(value, new_key, sep))
+            flattened_dict |= flatten_json(value, new_key, sep)
         else:
             flattened_dict[new_key] = value
     return flattened_dict
@@ -42,15 +42,12 @@ def unflatten_json(flattened_dict, sep=":"):
 
 def sort_nested_json(nested_json):
     if isinstance(nested_json, dict):
-        sorted_dict = {}
-        for key in sorted(nested_json.keys()):
-            sorted_dict[key] = sort_nested_json(nested_json[key])
-        return sorted_dict
+        return {
+            key: sort_nested_json(nested_json[key])
+            for key in sorted(nested_json.keys())
+        }
     elif isinstance(nested_json, list):
-        sorted_list = []
-        for item in nested_json:
-            sorted_list.append(sort_nested_json(item))
-        return sorted_list
+        return [sort_nested_json(item) for item in nested_json]
     else:
         return nested_json
 
@@ -72,9 +69,7 @@ def google_translate(
     # Extract translations from JSON
     translations = [item[0] for item in json_value[0]]
     translations = [t.replace(new_line, "") for t in translations]
-    target_text = translations[0]
-
-    return target_text
+    return translations[0]
 
 
 def get_code_name(json_filename):
@@ -107,7 +102,7 @@ def get_code_name(json_filename):
 
     # Add country code if available
     if country_code:
-        code_name += "-" + country_code.upper()
+        code_name += f"-{country_code.upper()}"
 
     return code_name
 
